@@ -26,8 +26,23 @@ Ubuntu 24.04 или Debian 12, Python 3.10+, systemd, root-доступ и **у�
 
 Выполните на **своём VPN-сервере**:
 
+Одна команда в интерактивном SSH-терминале:
+
 ```bash
-sudo apt-get update
+curl -fsSL https://raw.githubusercontent.com/Ma33x/am-portal/main/install.sh | sudo bash
+```
+
+Если `curl` ещё не установлен:
+
+```bash
+sudo apt-get update && sudo apt-get install -y curl
+```
+
+Скрипт скачает проект, поставит зависимости и откроет мастер. VPN AmneziaWG должен быть установлен заранее. Исходник команды: [install.sh](install.sh).
+
+Вариант с предварительным просмотром исходников:
+
+```bash
 sudo apt-get install -y git python3
 git clone https://github.com/Ma33x/am-portal.git
 cd am-portal
