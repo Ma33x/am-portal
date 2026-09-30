@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.sqlite*
+.env
+config.json
+backups/
+.venv/
