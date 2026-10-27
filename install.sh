@@ -6,7 +6,7 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 if ! command -v apt-get >/dev/null || ! command -v systemctl >/dev/null; then
-  echo 'Нужен Ubuntu 24.04 или Debian 12 с systemd.' >&2
+  echo 'Нужен Ubuntu 24.04 / 26.04 или Debian 12 с systemd.' >&2
   exit 1
 fi
 if [ ! -r /dev/tty ]; then

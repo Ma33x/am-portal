@@ -1,8 +1,8 @@
-"""Docker AmneziaWG 2 adapter. No user-supplied text is executed by a shell."""
+"""Docker AmneziaWG 2 / 3.1 adapter. No user-supplied text is executed by a shell."""
 import base64, ipaddress, json, re, subprocess, zlib
 from datetime import datetime
 
-FIELDS = ('Jc','Jmin','Jmax','S1','S2','S3','S4','H1','H2','H3','H4','I1','I2','I3','I4','I5')
+FIELDS = ('Jc','Jmin','Jmax','S1','S2','S3','S4','H1','H2','H3','H4','I1','I2','I3','I4','I5','HeaderProtectionKey','ContentPaddingAddition','RekeyAfterTime','RekeyTimeout','RejectAfterTime','KeepaliveTimeout','MaxHandshakeAttempts','RandomTrailers','DisableCookies')
 class AWG:
     def __init__(self, container, endpoint):
         self.container, self.endpoint = container, endpoint
@@ -47,7 +47,7 @@ class AWG:
         text+=''.join(k+' = '+val+'\n' for k,val in ob.items())
         text+='\n[Peer]\nPublicKey = '+server+'\nPresharedKey = '+psk+'\nAllowedIPs = 0.0.0.0/0, ::/0\nEndpoint = '+self.endpoint+':'+v['ListenPort']+'\nPersistentKeepalive = 25\n'
         last={**ob,'allowed_ips':['0.0.0.0/0','::/0'],'clientId':public,'client_ip':available,'client_priv_key':private,'client_pub_key':public,'config':text,'hostName':self.endpoint,'mtu':'1376','persistent_keep_alive':'25','port':int(v['ListenPort']),'psk_key':psk,'server_pub_key':server}
-        awg={**ob,'last_config':json.dumps(last,ensure_ascii=False)+'\n','port':v['ListenPort'],'protocol_version':'2','subnet_address':str(network.network_address),'transport_proto':'udp'}
+        awg={**ob,'last_config':json.dumps(last,ensure_ascii=False)+'\n','port':v['ListenPort'],'protocol_version':('3.1' if v.get('HeaderProtectionKey') else '2'),'subnet_address':str(network.network_address),'transport_proto':'udp'}
         payload={'containers':[{'awg':awg,'container':self.container}],'defaultContainer':self.container,'description':name,'dns1':'1.1.1.1','dns2':'1.0.0.1','hostName':self.endpoint,'nameOverriddenByUser':True}
         raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
         link='vpn://'+base64.urlsafe_b64encode(len(raw).to_bytes(4,'big')+zlib.compress(raw)).decode().rstrip('=')

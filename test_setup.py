@@ -4,7 +4,17 @@ from awg import AWG
 class Adapter(AWG):
  def snapshot(self):return '[Interface]\n',dict(Address='10.8.1.0/24',ListenPort='12345',PrivateKey='server',Jc='4',S1='29',S2='15',S3='18',S4='0',H1='1',H2='2',H3='3',H4='4')
  def cmd(self,*args,data=None):return 'test-key\n'
+class Adapter31(Adapter):
+ def snapshot(self):
+  conf,v=super().snapshot();v.update(HeaderProtectionKey='test-header-key',ContentPaddingAddition='0-10',RekeyAfterTime='100-120',RandomTrailers='on',DisableCookies='on');return conf,v
 class SetupTests(unittest.TestCase):
+ def test_awg31_export(self):
+  item=Adapter31('amnezia-awg2','vpn.example.com').prepare('Test','M',[])
+  enc=item['vpn'][6:];v=json.loads(zlib.decompress(base64.urlsafe_b64decode(enc+'='*(-len(enc)%4))[4:]));a=v['containers'][0]['awg']
+  self.assertEqual(a['protocol_version'],'3.1')
+  self.assertEqual(a['HeaderProtectionKey'],'test-header-key')
+  self.assertIn('ContentPaddingAddition = 0-10',item['conf'])
+  self.assertEqual(json.loads(a['last_config'])['RandomTrailers'],'on')
  def test_domain_validation(self):
   self.assertEqual(hostname('VPN.Example.com'),'vpn.example.com')
   for bad in ['https://x.com','x.com/path','x.com;bad','-a.com','1.2.3.4','a..com']:

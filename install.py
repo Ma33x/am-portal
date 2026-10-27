@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Interactive installer for an existing AmneziaWG 2 Docker server."""
+"""Interactive installer for an existing AmneziaWG 2 / 3.1 Docker server."""
 import ipaddress,json,os,re,secrets,shutil,socket,subprocess,sys,time
 from pathlib import Path
 
@@ -20,10 +20,10 @@ def free_domain(ip,provider):
 
 def main():
     if os.geteuid()!=0:raise RuntimeError('Запустите sudo python3 install.py')
-    if not shutil.which('apt-get') or not shutil.which('systemctl'):raise RuntimeError('Нужен Ubuntu 24.04 / Debian 12 с systemd.')
+    if not shutil.which('apt-get') or not shutil.which('systemctl'):raise RuntimeError('Нужен Ubuntu 24.04 / 26.04 или Debian 12 с systemd.')
     cfg=Path('/etc/am-portal/config.json')
     if cfg.exists():raise RuntimeError('Портал уже установлен. Обновление: см. README. Установщик не перезаписывает ключи.')
-    print('AM Portal — портал для вашего установленного AmneziaWG 2')
+    print('AM Portal — портал для вашего установленного AmneziaWG 2.0 / 3.1')
     print('1 — свой домен; 2 — бесплатный sslip.io; 3 — бесплатный nip.io')
     choice=input('Выбор [2]: ').strip() or '2'
     if choice not in ('1','2','3'):raise ValueError('Выберите 1, 2 или 3')
@@ -38,7 +38,8 @@ def main():
     run('docker','exec',container,'awg','show','awg0',stdout=subprocess.DEVNULL)
     run('docker','exec',container,'test','-f','/opt/amnezia/awg/clientsTable')
     from awg import AWG
-    AWG(container,domain).snapshot()
+    _, server_values = AWG(container,domain).snapshot()
+    print('Версия конфигурации AWG: '+('3.1' if server_values.get('HeaderProtectionKey') else '2.0'))
     email=input('Email для сертификата HTTPS: ').strip()
     if not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',email):raise ValueError('Некорректный email')
     admin=[str(ipaddress.ip_address(x.strip())) for x in input('IP для мастер-доступа через запятую (пусто — только секретная ссылка): ').split(',') if x.strip()]
